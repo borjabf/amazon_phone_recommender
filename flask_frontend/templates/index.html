@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Recomendador de móviles{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <h1>Recomendados de móviles</h1>
+</div>
+
+{{ wtf.quick_form(form) }}
+<div class="container" style="display: flex; flex-direction: row; flex-wrap: wrap; margin-top: 5px;">
+  {% for i in resultados %}
+    <div class="card" style="width: 500px; border-style: solid; border-radius: 5px; margin-left: 5px; margin-right: 5px;padding: 5px; display: flex;">
+      <div class="card-body">
+        <h5 class="card-title">{{i.Nombre}}</h5>
+        <p class="card-text">Marca: {{i.Marca}}</p>
+        <p class="card-text">Precio: {{i.Precio}}€</p>
+        <p class="card-text">Nota: {{i.media}}</p>
+        <a href={{i.url}} class="btn btn-primary">Ver en Amazon</a>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+    
+{% endblock %}
