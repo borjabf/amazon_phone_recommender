@@ -1,25 +1,28 @@
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from bs4 import BeautifulSoup
-import re
 import pandas as pd
-import os
 import time 
 import random
 from selenium.common.exceptions import NoSuchElementException
-import pymongo
 from pymongo import MongoClient 
-import numpy as np
 import spacy
-from tqdm import tqdm 
 
-negativo=pd.read_csv(r"C:\Users\Javi\Desktop\negativo.txt")
-positivo=pd.read_csv(r"C:\Users\Javi\Desktop\positivo.txt")
+# Conexión MongoDB
+client = MongoClient("URI_MONGODB")
+db = client["Amazon"]
+ProductCollection = db["Productos"] 
+
+# CSVs sentimiento NLP
+negativo=pd.read_csv('negativo.csv')
+positivo=pd.read_csv('positivo.csv')
 negativo.columns=["lexico"]
 positivo.columns=["lexico"]
+
+# Spacy
 nlp = spacy.load("es_core_news_lg")
 
-#Creación de bases de datos
+#Función limpieza de texto de reviews NLP
 
 def cleanText(text):
     doc = nlp(text)
@@ -32,20 +35,10 @@ def cleanText(text):
                 clean.append(i.lemma_)
     return ' '.join(clean)
 
-client = pymongo.MongoClient("mongodb+srv://Borja:b4zfdJFP9QQ80LGY@amazon.nbiae.mongodb.net/Amazon?retryWrites=true&w=majority")
-db = client["Amazon"]
-ProductCollection = db["Productos"] 
 
-# ProductCollection.delete_many({})
-
-path = r'C:\Users\Javi\Desktop\Selenium'
-# path = '/Users/MacBookProCasa/Documents/Formación/Data science/Nebulova Mac/Ejercicios iCloud/Proyecto/Selenium and Beauty'
-
-# Chrome
+# Chrome Driver - Selenium
 driver = webdriver.Chrome(path + '/chromedriver')
-# Firefox
-# driver = webdriver.Firefox(path + '/geckodriver')
-                           
+                          
 driver.implicitly_wait(3)
 
 url = "https://www.amazon.es/s?bbn=599370031&rh=n%3A17425698031&brr=1&rd=1&ref=Oct_s9_apbd_odnav_hd_bw_bj2KsR_1"
@@ -102,7 +95,7 @@ while contador_1<20:
             else:
                 brand = None
                     
-            # Price METIDOS DESPUÉS DEL CAMBIO DESDE 182 EN ADELANTE
+            # Price 
             precio1=soup.find("span", { "id" : "price_inside_buybox" })
             precio2=soup.find("span", { "id" : "newBuyBoxPrice" })
             if precio1:
@@ -203,36 +196,3 @@ while contador_1<20:
     contador_1+=1
     nextPage = driver.find_element_by_partial_link_text('Siguiente')
     nextPage.click()
-    
-#Pregunta al usuario
-
-precio_usuario=int(input("¿Cuánto quieres gastarte como máximo?"))
-
-result = list(client['Amazon']['Productos'].aggregate([
-{
-'$match': {
-'Precio': {
-'$lte': precio_usuario
-},
-'Score': {
-'$exists': True
-}
-}
-}, {
-'$sort': {
-'Score': -1
-}
-}, {
-'$limit': 10
-}
-]))
-  
-for resultado in result:
-    if resultado["Marca"] is None:
-        resultado["Marca"]="Marca sin especificar"
-    print("###################################################################")
-    print(("Nombre:{nombre_result}").format(nombre_result=resultado["Nombre"]))
-    print(("Precio:{precio_result}").format(precio_result=resultado["Precio"]))
-    print(("Marca:{marca_result}").format(marca_result=resultado["Marca"]))
-    print(("Media:{media_result}").format(media_result=resultado["media"]))
-    print(("url:{url_result}").format(url_result=resultado["url"]))
