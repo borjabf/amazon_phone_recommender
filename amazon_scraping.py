@@ -8,21 +8,17 @@ from selenium.common.exceptions import NoSuchElementException
 from pymongo import MongoClient 
 import spacy
 
-# Conexión MongoDB
 client = MongoClient("URI_MONGODB")
 db = client["Amazon"]
 ProductCollection = db["Productos"] 
 
-# CSVs sentimiento NLP
 negativo=pd.read_csv('negativo.csv')
 positivo=pd.read_csv('positivo.csv')
 negativo.columns=["lexico"]
 positivo.columns=["lexico"]
 
-# Spacy
 nlp = spacy.load("es_core_news_lg")
 
-#Función limpieza de texto de reviews NLP
 
 def cleanText(text):
     doc = nlp(text)
@@ -36,7 +32,7 @@ def cleanText(text):
     return ' '.join(clean)
 
 
-# Chrome Driver - Selenium
+
 driver = webdriver.Chrome(path + '/chromedriver')
                           
 driver.implicitly_wait(3)
@@ -70,7 +66,7 @@ while contador_1<20:
                 cookies_1 = cookies.find_element_by_id('sp-cc-accept').click()
             except NoSuchElementException:
                 pass
-            #Entrar en el producto
+            # click new product
             time.sleep(tiempo)
             try:
                 driver.find_element_by_link_text(name.replace('\xa0', ' ')).click()   
@@ -85,7 +81,7 @@ while contador_1<20:
                 nombre=nombre.get_text().strip()
             time.sleep(tiempo)
             
-            #Marca
+            # Brand
             brand_list = []
             for info in soup.find_all('table', id='productDetails_techSpec_section_1'):
                 for brand in info.find_all('td', class_='a-size-base'):
@@ -112,7 +108,7 @@ while contador_1<20:
                 precio=None
             time.sleep(tiempo)
             
-            #Media de reseñas
+            # Review mean score
             rsn=soup.find("span", { "data-hook" : "rating-out-of-text"})
             if rsn:
                 rsn_string = rsn.get_text().strip()
@@ -124,10 +120,10 @@ while contador_1<20:
                 review_mean = None
                 
             
-            #URL
+            # URL
             url_actual=driver.current_url
             
-            #Reviews escritas
+            # Review text
             reviews={}
             identificador_2=0
             try:
@@ -145,7 +141,7 @@ while contador_1<20:
             except NoSuchElementException:
                 pass
                 
-            #Introducir en diccionario
+            # MongoDB insert
             ProductCollection.insert_one({"Nombre":nombre,"Marca":brand,"Precio":precio,"media":review_mean,"url":url_actual,"reviews_txt":reviews})
             producto=list(ProductCollection.find({"Nombre":nombre}))[0]
             reviews=producto["reviews_txt"]
@@ -184,7 +180,7 @@ while contador_1<20:
                     ProductCollection.update({'Nombre':nombre_producto}, {'$set':{'Score':score}})
             except KeyError:
                 pass   
-            #retorno
+            
             driver.back()
     
     time.sleep(1)
