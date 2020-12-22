@@ -1,6 +1,6 @@
 from pymongo import MongoClient 
 
-client = MongoClient("mongodb+srv://Borja:b4zfdJFP9QQ80LGY@amazon.nbiae.mongodb.net/Amazon?retryWrites=true&w=majority")
+client = MongoClient(URI_MONGODB)
 
 precio_usuario = int(input("¿Cuánto quieres gastarte como máximo?"))
 

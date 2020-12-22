@@ -12,7 +12,7 @@ app.config['SECRET_KEY'] = 'hard to guess string'
 bootstrap = Bootstrap(app)
 moment = Moment(app)
 
-client = pymongo.MongoClient("mongodb+srv://Borja:b4zfdJFP9QQ80LGY@amazon.nbiae.mongodb.net/Amazon?retryWrites=true&w=majority")
+client = pymongo.MongoClient([URI_MONGODB])
 db = client["Amazon"]
 ProductCollection = db["Productos"] 
 
